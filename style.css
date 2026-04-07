@@ -1,4 +1,3 @@
-/* Update Styling Modern */
 .input-modern-v2 {
     width: 100%;
     padding: 1.2rem;
@@ -15,8 +14,16 @@
     box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.1);
 }
 
+/* Scroll Feature */
+.scroll-container {
+    max-height: 400px; /* Daftar transaksi tidak akan melebihi tinggi ini */
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 5px;
+}
+
 .custom-scroll::-webkit-scrollbar { width: 4px; }
-.custom-scroll::-webkit-scrollbar-thumb { background: #E2E8F0; border-radius: 10px; }
+.custom-scroll::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 10px; }
 
 @keyframes slideIn {
     from { opacity: 0; transform: translateY(15px); }
@@ -24,3 +31,41 @@
 }
 
 .item-anim { animation: slideIn 0.4s ease-out forwards; }
+.input-modern-v2 {
+    width: 100%;
+    padding: 1.2rem;
+    background-color: white;
+    border: 1.5px solid #E2E8F0;
+    border-radius: 1.25rem;
+    font-size: 0.9rem;
+    outline: none;
+    transition: all 0.3s ease;
+}
+.input-modern-v2:focus { border-color: #6366F1; box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.1); }
+.scroll-container { max-height: 380px; overflow-y: auto; padding-right: 5px; }
+.custom-scroll::-webkit-scrollbar { width: 4px; }
+.custom-scroll::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 10px; }
+@keyframes slideIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+.item-anim { animation: slideIn 0.4s ease-out forwards; }
+@keyframes wave-move {
+    0% { transform: translateX(0); }
+    50% { transform: translateX(-15px); }
+    100% { transform: translateX(0); }
+}
+
+#liquid-wave {
+    transition: d 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: wave-move 3s ease-in-out infinite;
+}
+/* Style untuk Privacy Mode Blur */
+.privacy-blur {
+    filter: blur(8px) grayscale(1);
+    pointer-events: none; /* Biar nominal gak bisa di-copy saat blur */
+    user-select: none;
+    transition: filter 0.3s ease;
+}
+
+/* Biar icon di dalem list nggak ikut blur (opsional, biar tetep estetik) */
+.privacy-blur i {
+    filter: none !important;
+}
