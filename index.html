@@ -13,7 +13,6 @@
 <body class="bg-[#F1F5F9] min-h-screen font-['Plus_Jakarta_Sans'] antialiased text-slate-900">
 
     <div class="flex flex-col lg:flex-row min-h-screen">
-        
         <aside class="w-full lg:w-20 bg-slate-900 flex lg:flex-col items-center py-8 px-4 gap-8">
             <div class="bg-indigo-500 p-3 rounded-2xl text-white shadow-lg shadow-indigo-500/30">
                 <i class="fas fa-wallet fa-lg"></i>
@@ -23,38 +22,66 @@
                 <div class="text-slate-500 cursor-pointer p-3 hover:text-white transition"><i class="fas fa-chart-pie fa-xl"></i></div>
                 <div class="text-slate-500 cursor-pointer p-3 hover:text-white transition"><i class="fas fa-cog fa-xl"></i></div>
             </nav>
-            <div class="hidden lg:block text-slate-600 hover:text-rose-500 cursor-pointer transition">
-                <i class="fas fa-power-off fa-xl"></i>
-            </div>
         </aside>
 
         <div class="flex-1 flex flex-col lg:flex-row overflow-hidden">
-            
             <section class="lg:w-7/12 p-6 lg:p-12 overflow-y-auto bg-[#F8FAFC]">
-                <header class="mb-10">
-                    <h1 class="text-3xl font-extrabold text-slate-900">Dashboard Utama</h1>
-                    <p id="current-date" class="text-slate-400 font-semibold mt-1 uppercase text-xs tracking-tighter"></p>
-                </header>
+                <header class="mb-10 flex justify-between items-start">
+    <div>
+        <h1 class="text-3xl font-extrabold text-slate-900">Dashboard Utama</h1>
+        <p id="current-date" class="text-slate-400 font-semibold mt-1 uppercase text-xs tracking-tighter"></p>
+    </div>
+    
+    <button id="privacy-toggle" class="bg-white p-3 rounded-2xl border border-slate-100 shadow-sm hover:bg-slate-50 transition-all text-slate-400 hover:text-indigo-600 active:scale-90">
+        <i id="privacy-icon" class="fas fa-eye fa-lg"></i>
+    </button>
+</header>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">💵 Cash</p>
+                        <h4 id="wallet-cash" class="text-lg font-extrabold text-slate-800">Rp 0</h4>
+                    </div>
+                    <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">🏦 BRI</p>
+                        <h4 id="wallet-bank" class="text-lg font-extrabold text-slate-800">Rp 0</h4>
+                    </div>
+                    <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">📱 E-Wallet</p>
+                        <h4 id="wallet-ewallet" class="text-lg font-extrabold text-slate-800">Rp 0</h4>
+                    </div>
+                </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
                     <div class="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100 flex flex-col justify-between h-40">
                         <span class="bg-emerald-100 text-emerald-600 w-10 h-10 rounded-full flex items-center justify-center mb-4"><i class="fas fa-plus"></i></span>
                         <div>
-                            <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Pemasukan</p>
+                            <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Total Masuk</p>
                             <h3 id="total-income" class="text-xl font-extrabold text-slate-900 mt-1">Rp 0</h3>
                         </div>
                     </div>
                     <div class="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100 flex flex-col justify-between h-40">
                         <span class="bg-rose-100 text-rose-600 w-10 h-10 rounded-full flex items-center justify-center mb-4"><i class="fas fa-minus"></i></span>
                         <div>
-                            <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Pengeluaran</p>
+                            <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Total Keluar</p>
                             <h3 id="total-expense" class="text-xl font-extrabold text-slate-900 mt-1">Rp 0</h3>
                         </div>
                     </div>
-                    <div class="bg-indigo-600 p-6 rounded-[2.5rem] shadow-xl shadow-indigo-100 flex flex-col justify-between h-40 text-white">
-                        <span class="bg-indigo-500 text-white w-10 h-10 rounded-full flex items-center justify-center mb-4"><i class="fas fa-vault"></i></span>
-                        <div>
-                            <p class="text-[10px] font-extrabold text-indigo-200 uppercase tracking-widest">Sisa Saldo</p>
+
+                    <div class="relative overflow-hidden bg-indigo-600 p-6 rounded-[2.5rem] shadow-xl shadow-indigo-100 flex flex-col justify-between h-40 text-white">
+                        <div class="absolute inset-0 opacity-20 pointer-events-none">
+                            <svg class="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                                <path id="liquid-wave" d="M0 100 V50 Q25 40 50 50 T100 50 V100 Z" fill="white">
+                                    <animateTransform attributeName="transform" type="translate" from="-10,0" to="10,0" dur="2s" repeatCount="indefinite" />
+                                </path>
+                            </svg>
+                        </div>
+                        
+                        <span class="relative z-10 bg-indigo-500 text-white w-10 h-10 rounded-full flex items-center justify-center mb-4">
+                            <i class="fas fa-vault"></i>
+                        </span>
+                        <div class="relative z-10">
+                            <p class="text-[10px] font-extrabold text-indigo-200 uppercase tracking-widest">Total Saldo</p>
                             <h3 id="total-balance" class="text-xl font-extrabold mt-1">Rp 0</h3>
                         </div>
                     </div>
@@ -63,11 +90,10 @@
                 <div class="bg-white p-10 rounded-[3rem] shadow-sm border border-slate-100">
                     <div class="flex items-center justify-between mb-8">
                         <h3 class="text-xl font-extrabold text-slate-800">Analisis Aliran Kas</h3>
-                        <span class="text-xs font-bold text-slate-400 bg-slate-50 px-3 py-1 rounded-full uppercase">Bulan Ini</span>
                     </div>
                     <div class="relative h-[300px] w-full flex justify-center items-center">
                         <canvas id="expenseChart"></canvas>
-                        <div class="absolute flex flex-col items-center">
+                        <div class="absolute flex flex-col items-center pointer-events-none">
                             <span class="text-xs font-bold text-slate-400 uppercase">Status</span>
                             <span class="text-lg font-extrabold text-indigo-600">Aman</span>
                         </div>
@@ -76,7 +102,6 @@
             </section>
 
             <section class="lg:w-5/12 p-6 lg:p-12 bg-white border-l border-slate-100 flex flex-col gap-10">
-                
                 <div class="bg-slate-50 p-8 rounded-[2.5rem]">
                     <h3 class="text-lg font-extrabold text-slate-800 mb-6 flex items-center gap-2">
                         <i class="fas fa-plus-circle text-indigo-500"></i> Catat Transaksi
@@ -84,10 +109,17 @@
                     <form id="transaction-form" class="space-y-4">
                         <input type="text" id="name" placeholder="Keterangan" class="input-modern-v2" required>
                         <input type="text" id="amount" placeholder="Nominal" class="input-modern-v2 font-bold text-indigo-600" required>
-                        <select id="type" class="input-modern-v2 cursor-pointer font-semibold">
-                            <option value="pemasukan" class="text-emerald-600">💰 Uang Masuk</option>
-                            <option value="pengeluaran" class="text-rose-600">📉 Uang Keluar</option>
-                        </select>
+                        <div class="grid grid-cols-2 gap-2">
+                            <select id="type" class="input-modern-v2 cursor-pointer font-semibold">
+                                <option value="pemasukan">💰 Masuk</option>
+                                <option value="pengeluaran">📉 Keluar</option>
+                            </select>
+                            <select id="wallet-type" class="input-modern-v2 cursor-pointer font-semibold">
+                                <option value="cash">💵 Tunai</option>
+                                <option value="bank">🏦 BRI</option>
+                                <option value="ewallet">📱 E-Wallet</option>
+                            </select>
+                        </div>
                         <button type="submit" class="w-full bg-slate-900 hover:bg-black text-white font-extrabold py-4 rounded-2xl shadow-xl transition-all active:scale-95 uppercase text-xs tracking-widest">
                             Simpan Ke Database
                         </button>
@@ -97,16 +129,24 @@
                 <div class="flex flex-col flex-1 overflow-hidden">
                     <div class="flex items-center justify-between mb-6 px-2">
                         <h3 class="text-lg font-extrabold text-slate-800 italic underline decoration-indigo-300 decoration-4">Log Terakhir</h3>
-                        <button id="clear-btn" class="text-[10px] font-extrabold text-rose-500 hover:bg-rose-50 px-4 py-2 rounded-full border border-rose-100 transition">RESET ALL</button>
+                        <div class="flex gap-2">
+                            <select id="filter-period" class="text-[10px] font-bold bg-slate-100 border-none rounded-full px-3 py-2 outline-none cursor-pointer">
+                                <option value="all">Semua</option>
+                                <option value="today">Hari Ini</option>
+                                <option value="month">Bulan Ini</option>
+                            </select>
+                            <button id="clear-btn" class="text-[10px] font-extrabold text-rose-500 hover:bg-rose-50 px-4 py-2 rounded-full border border-rose-100 transition">RESET</button>
+                        </div>
                     </div>
-                    <ul id="history-list" class="divide-y divide-slate-50 overflow-y-auto flex-1 pr-2 custom-scroll">
-                        </ul>
-                    <div id="empty-state" class="hidden text-center py-20 opacity-30">
-                        <p class="font-bold uppercase text-xs">Riwayat Kosong</p>
+
+                    <div class="scroll-container custom-scroll flex-1">
+                        <ul id="history-list" class="divide-y divide-slate-50"></ul>
+                        <div id="empty-state" class="hidden text-center py-20 opacity-30">
+                            <p class="font-bold uppercase text-xs">Riwayat Kosong</p>
+                        </div>
                     </div>
                 </div>
             </section>
-
         </div>
     </div>
 
