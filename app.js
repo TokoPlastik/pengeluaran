@@ -13,7 +13,7 @@ import {
 
 const colRef = collection(db, "transaksi");
 
-// Element Selector
+// --- 1. ELEMENT SELECTORS ---
 const form = document.getElementById('transaction-form');
 const historyList = document.getElementById('history-list');
 const incomeDisplay = document.getElementById('total-income');
@@ -22,28 +22,66 @@ const balanceDisplay = document.getElementById('total-balance');
 const amountInput = document.getElementById('amount');
 const clearBtn = document.getElementById('clear-btn');
 const emptyState = document.getElementById('empty-state');
+const filterPeriod = document.getElementById('filter-period');
+
+// Wallet Displays
+const cashDisp = document.getElementById('wallet-cash');
+const bankDisp = document.getElementById('wallet-bank');
+const ewalletDisp = document.getElementById('wallet-ewallet');
+
+// Privacy Mode Elements
+const privacyToggle = document.getElementById('privacy-toggle');
+const privacyIcon = document.getElementById('privacy-icon');
+let isPrivacyMode = false;
 
 let myChart;
 
-// --- 1. FUNGSI FORMATTING ---
+// --- 2. PRIVACY MODE LOGIC ---
+// Fungsi untuk handle blur data sensitif
+const applyPrivacyFilter = () => {
+    const sensitiveElements = [
+        incomeDisplay, expenseDisplay, balanceDisplay, 
+        cashDisp, bankDisp, ewalletDisp, historyList
+    ];
+    
+    sensitiveElements.forEach(el => {
+        if (el) {
+            isPrivacyMode ? el.classList.add('privacy-blur') : el.classList.remove('privacy-blur');
+        }
+    });
+};
 
-// Format ribuan otomatis SAAT MENGETIK (50000 -> 50.000)
+if (privacyToggle) {
+    privacyToggle.addEventListener('click', () => {
+        isPrivacyMode = !isPrivacyMode;
+        
+        // UI Toggle
+        privacyIcon.classList.toggle('fa-eye');
+        privacyIcon.classList.toggle('fa-eye-slash');
+        privacyToggle.classList.toggle('text-indigo-600');
+        privacyToggle.classList.toggle('bg-indigo-50');
+
+        applyPrivacyFilter();
+    });
+}
+
+// --- 3. FORMATTING UTILS ---
+// Format ribuan otomatis pas ngetik
 amountInput.addEventListener('keyup', function() {
     let value = this.value.replace(/[^0-9]/g, ''); 
     this.value = value ? new Intl.NumberFormat('id-ID').format(value) : '';
 });
 
-// Fungsi pembuat format Rupiah (50000 -> Rp 50.000)
+// Helper buat nampilin Rp
 const formatIDR = (num) => {
     return new Intl.NumberFormat('id-ID', {
         style: 'currency', 
         currency: 'IDR', 
         maximumFractionDigits: 0
-    }).format(num);
+    }).format(num || 0);
 };
 
-// --- 2. FUNGSI GRAFIK ---
-
+// --- 4. VISUALS (CHART & LIQUID) ---
 function updateChart(totalIn, totalOut) {
     const ctx = document.getElementById('expenseChart').getContext('2d');
     if (myChart) { myChart.destroy(); }
@@ -68,69 +106,112 @@ function updateChart(totalIn, totalOut) {
     });
 }
 
-// --- 3. REAL-TIME DATABASE LISTENER ---
+function updateLiquidLevel(balance) {
+    const wave = document.getElementById('liquid-wave');
+    if (!wave) return;
+    const targetMax = 10000000; // Visualisasi penuh di 10jt
+    let percentage = (balance / targetMax) * 100;
+    let height = 100 - Math.min(Math.max(percentage, 5), 90); 
+    wave.setAttribute('d', `M0 ${height} Q25 ${height-10} 50 ${height} T100 ${height} V100 H0 Z`);
+}
 
-const q = query(colRef, orderBy('createdAt', 'desc'));
+// --- 5. REAL-TIME DATA LISTENER ---
+const renderData = () => {
+    const q = query(colRef, orderBy('createdAt', 'desc'));
 
-onSnapshot(q, (snapshot) => {
-    historyList.innerHTML = '';
-    let totalIn = 0;
-    let totalOut = 0;
-
-    if (snapshot.empty) {
-        emptyState.classList.remove('hidden');
-    } else {
-        emptyState.classList.add('hidden');
+    onSnapshot(q, (snapshot) => {
+        historyList.innerHTML = '';
         
-        snapshot.docs.forEach((docSnap) => {
-            const t = docSnap.data();
-            const id = docSnap.id;
-            const isInc = t.type === 'pemasukan';
+        let totalIn = 0; let totalOut = 0;
+        let wCash = 0; let wBank = 0; let wEwallet = 0;
+        
+        const now = new Date();
+        const selectedFilter = filterPeriod.value;
+
+        if (snapshot.empty) {
+            emptyState.classList.remove('hidden');
+        } else {
+            emptyState.classList.add('hidden');
             
-            // Hitung Total
-            isInc ? totalIn += t.amount : totalOut += t.amount;
+            snapshot.docs.forEach((docSnap) => {
+                const t = docSnap.data();
+                const id = docSnap.id;
+                const isInc = t.type === 'pemasukan';
+                const amount = t.amount || 0;
+                const walletType = t.wallet || 'cash';
+                
+                // Hitung Saldo Global (Biar wallet tetap akurat meski di-filter)
+                if (walletType === 'cash') isInc ? wCash += amount : wCash -= amount;
+                if (walletType === 'bank') isInc ? wBank += amount : wBank -= amount;
+                if (walletType === 'ewallet') isInc ? wEwallet += amount : wEwallet -= amount;
 
-            // Render List dengan Format Ribuan (formatIDR)
-            const li = document.createElement('li');
-            li.className = 'p-6 flex justify-between items-center hover:bg-slate-50 transition-all item-anim';
-            li.innerHTML = `
-                <div class="flex items-center gap-5">
-                    <div class="w-10 h-10 rounded-xl ${isInc ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'} flex items-center justify-center">
-                        <i class="fas ${isInc ? 'fa-arrow-up' : 'fa-arrow-down'}"></i>
-                    </div>
-                    <div>
-                        <p class="font-bold text-slate-800 text-sm">${t.name}</p>
-                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">${t.dateString}</p>
-                    </div>
-                </div>
-                <div class="flex items-center gap-4">
-                    <span class="font-extrabold text-sm ${isInc ? 'text-emerald-600' : 'text-slate-800'}">
-                        ${isInc ? '+' : '-'}${formatIDR(t.amount)}
-                    </span>
-                    <button onclick="deleteData('${id}')" class="text-slate-300 hover:text-rose-500 p-2 transition-all active:scale-125">
-                        <i class="fas fa-trash-can"></i>
-                    </button>
-                </div>
-            `;
-            historyList.appendChild(li);
-        });
-    }
+                // Logika Filter List & Chart
+                const transactionDate = t.createdAt ? t.createdAt.toDate() : new Date();
+                let isPassedFilter = true;
 
-    // Update Angka di Card Atas (dengan format ribuan)
-    incomeDisplay.innerText = formatIDR(totalIn);
-    expenseDisplay.innerText = formatIDR(totalOut);
-    balanceDisplay.innerText = formatIDR(totalIn - totalOut);
-    
-    // Update Grafik
-    updateChart(totalIn, totalOut);
-});
+                if (selectedFilter === 'today') {
+                    isPassedFilter = transactionDate.toDateString() === now.toDateString();
+                } else if (selectedFilter === 'month') {
+                    isPassedFilter = transactionDate.getMonth() === now.getMonth() && 
+                                     transactionDate.getFullYear() === now.getFullYear();
+                }
 
-// --- 4. TAMBAH DATA ---
+                if (isPassedFilter) {
+                    isInc ? totalIn += amount : totalOut += amount;
 
+                    const li = document.createElement('li');
+                    li.className = `p-6 flex justify-between items-center hover:bg-slate-50 transition-all item-anim ${isPrivacyMode ? 'privacy-blur' : ''}`;
+                    li.innerHTML = `
+                        <div class="flex items-center gap-5">
+                            <div class="w-10 h-10 rounded-xl ${isInc ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'} flex items-center justify-center">
+                                <i class="fas ${isInc ? 'fa-arrow-up' : 'fa-arrow-down'}"></i>
+                            </div>
+                            <div>
+                                <p class="font-bold text-slate-800 text-sm">
+                                    ${t.name} 
+                                    <span class="text-[9px] bg-slate-200 text-slate-600 px-2 py-0.5 rounded ml-1 uppercase font-extrabold tracking-tighter">${walletType}</span>
+                                </p>
+                                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">${t.dateString}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <span class="font-extrabold text-sm ${isInc ? 'text-emerald-600' : 'text-slate-800'}">
+                                ${isInc ? '+' : '-'}${formatIDR(amount)}
+                            </span>
+                            <button onclick="deleteData('${id}')" class="text-slate-300 hover:text-rose-500 p-2 transition-all active:scale-125">
+                                <i class="fas fa-trash-can"></i>
+                            </button>
+                        </div>
+                    `;
+                    historyList.appendChild(li);
+                }
+            });
+        }
+
+        // Update UI
+        const globalBalance = wCash + wBank + wEwallet;
+        incomeDisplay.innerText = formatIDR(totalIn);
+        expenseDisplay.innerText = formatIDR(totalOut);
+        balanceDisplay.innerText = formatIDR(globalBalance);
+        
+        cashDisp.innerText = formatIDR(wCash);
+        bankDisp.innerText = formatIDR(wBank);
+        ewalletDisp.innerText = formatIDR(wEwallet);
+        
+        updateChart(totalIn, totalOut);
+        updateLiquidLevel(globalBalance);
+        
+        // Re-apply filter buat list yang baru dirender
+        applyPrivacyFilter();
+    });
+};
+
+renderData();
+filterPeriod.addEventListener('change', renderData);
+
+// --- 6. ACTIONS (ADD, DELETE, RESET) ---
 form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    
-    // Ambil nilai dari input, hapus titik (.) agar tersimpan sebagai angka murni
     const rawAmount = amountInput.value.replace(/\./g, ''); 
     const amountValue = parseFloat(rawAmount);
 
@@ -141,23 +222,18 @@ form.addEventListener('submit', async (e) => {
             name: document.getElementById('name').value,
             amount: amountValue,
             type: document.getElementById('type').value,
+            wallet: document.getElementById('wallet-type').value,
             createdAt: serverTimestamp(),
             dateString: new Date().toLocaleDateString('id-ID', { 
                 day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' 
             })
         });
         form.reset();
-    } catch (err) {
-        alert("Gagal simpan: " + err.message);
-    }
+    } catch (err) { alert("Gagal simpan: " + err.message); }
 });
 
-// --- 5. HAPUS DATA & RESET ---
-
 window.deleteData = async (id) => {
-    if(confirm('Hapus data ini?')) {
-        await deleteDoc(doc(db, "transaksi", id));
-    }
+    if(confirm('Hapus data ini?')) { await deleteDoc(doc(db, "transaksi", id)); }
 };
 
 clearBtn.addEventListener('click', async () => {
@@ -169,8 +245,7 @@ clearBtn.addEventListener('click', async () => {
     }
 });
 
-// --- 6. INISIALISASI TANGGAL ---
-
+// Inisialisasi Tanggal
 document.getElementById('current-date').innerText = new Date().toLocaleDateString('id-ID', { 
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' 
 });
